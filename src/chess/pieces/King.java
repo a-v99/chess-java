@@ -2,80 +2,119 @@ package chess.pieces;
 
 import boardgame.Board;
 import boardgame.Position;
+import chess.ChessMatch;
 import chess.ChessPiece;
 import chess.Color;
 
-public class King extends ChessPiece{
+public class King extends ChessPiece {
 
-	public King(Board board, Color color) {
+	private ChessMatch chessMatch;
+
+	public King(Board board, Color color, ChessMatch chessMatch) {
 		super(board, color);
+		this.chessMatch = chessMatch;
 	}
-	
+
 	@Override
 	public String toString() {
 		return "K";
 	}
 
 	private boolean canMove(Position position) {
-		ChessPiece p = (ChessPiece)getBoard().piece(position);
+		ChessPiece p = (ChessPiece) getBoard().piece(position);
 		return p == null || p.getColor() != getColor();
-	}	
-	
+	}
+
+	private boolean testRookCastling(Position position) {
+		ChessPiece p = (ChessPiece) getBoard().piece(position);
+		return p != null && p instanceof Rook && p.getColor() == getColor() && p.getMoveCount() == 0;
+	}
+
 	@Override
 	public boolean[][] possibleMoves() {
 		boolean[][] mat = new boolean[getBoard().getRows()][getBoard().getColumns()];
-		
+
 		Position p = new Position(0, 0);
-		
-		//above
-		p.setValues(position.getRow() -1, position.getColumn());
+
+		// above
+		p.setValues(position.getRow() - 1, position.getColumn());
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
-		//below
-		p.setValues(position.getRow() +1, position.getColumn());
+
+		// below
+		p.setValues(position.getRow() + 1, position.getColumn());
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
-		//left
-		p.setValues(position.getRow(), position.getColumn() -1);
+
+		// left
+		p.setValues(position.getRow(), position.getColumn() - 1);
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
-		//right
-		p.setValues(position.getRow(), position.getColumn() +1);
+
+		// right
+		p.setValues(position.getRow(), position.getColumn() + 1);
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
-		//nw
-		p.setValues(position.getRow() -1, position.getColumn() -1);
+
+		// nw
+		p.setValues(position.getRow() - 1, position.getColumn() - 1);
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
-		//ne
-		p.setValues(position.getRow() -1, position.getColumn() +1);
+
+		// ne
+		p.setValues(position.getRow() - 1, position.getColumn() + 1);
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
-		//sw
-		p.setValues(position.getRow() +1, position.getColumn() -1);
+
+		// sw
+		p.setValues(position.getRow() + 1, position.getColumn() - 1);
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
-		//se
-		p.setValues(position.getRow() +1, position.getColumn() +1);
+
+		// se
+		p.setValues(position.getRow() + 1, position.getColumn() + 1);
 		if (getBoard().positionExists(p) && canMove(p)) {
 			mat[p.getRow()][p.getColumn()] = true;
 		}
-		
+
+		// #special move castling
+		if (getMoveCount() == 0 && !chessMatch.getCheck()) {
+			// #special move short castle (king-side)
+			Position posR1 = new Position(position.getRow(), position.getColumn() + 3);
+			if (testRookCastling(posR1)) {
+				Position p1 = new Position(position.getRow(), position.getColumn() + 1);
+				Position p2 = new Position(position.getRow(), position.getColumn() + 2);
+
+				// Check if the squares the king will move through are not under attack
+				if (getBoard().piece(p1) == null && getBoard().piece(p2) == null
+						&& !getBoard().isUnderAttack(p1, getColor()) && !getBoard().isUnderAttack(p2, getColor())) {
+					mat[position.getRow()][position.getColumn() + 2] = true;
+				}
+			}
+
+			// #special move long castle (queen-side)
+			Position posR2 = new Position(position.getRow(), position.getColumn() - 4);
+			if (testRookCastling(posR2)) {
+				Position p1 = new Position(position.getRow(), position.getColumn() - 1);
+				Position p2 = new Position(position.getRow(), position.getColumn() - 2);
+				Position p3 = new Position(position.getRow(), position.getColumn() - 3);
+
+				// Check if the squares the king will move through are not under attack
+				if (getBoard().piece(p1) == null && getBoard().piece(p2) == null && getBoard().piece(p3) == null
+						&& !getBoard().isUnderAttack(p1, getColor()) && !getBoard().isUnderAttack(p2, getColor())
+						&& !getBoard().isUnderAttack(p3, getColor())) {
+					mat[position.getRow()][position.getColumn() - 2] = true;
+				}
+			}
+		}
+
 		return mat;
 	}
-
 }
