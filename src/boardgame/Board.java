@@ -1,5 +1,11 @@
 package boardgame;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import chess.ChessPiece;
+import chess.Color;
+
 public class Board {
 
 	private int rows;
@@ -78,4 +84,31 @@ public class Board {
 		return piece(position) != null;
 	}
 
+	public List<Piece> getPieces(Color color) {
+		List<Piece> activePieces = new ArrayList<>();
+
+		for (int row = 0; row < pieces.length; row++) {
+			for (int col = 0; col < pieces[row].length; col++) {
+				Piece piece = pieces[row][col];
+				if ((ChessPiece) piece != null && ((ChessPiece) piece).getColor() == color) {
+					activePieces.add(piece);
+				}
+			}
+		}
+
+		return activePieces;
+	}
+
+	public boolean isUnderAttack(Position position, Color color) {
+		Color opponentColor = (color == Color.WHITE) ? Color.BLACK : Color.WHITE;
+		List<Piece> opponentPieces = getPieces(opponentColor);
+		for (Piece piece : opponentPieces) {
+			boolean[][] possibleMoves = piece.possibleMoves();
+			if (possibleMoves[position.getRow()][position.getColumn()]) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }
